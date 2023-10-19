@@ -26,9 +26,21 @@ async function run() {
 
       const productCollection = client.db('CosmicoDB').collection('Product')
       const brandCollection = client.db('CosmicoDB').collection('Brand')
+      const advertisement = client.db('CosmicoDB').collection('Advertisement')
 
       app.get('/products', async(req, res)=>{
          const cursor = productCollection.find()
+         const result = await cursor.toArray()
+         res.send(result)
+      })
+
+      app.get('/products/brands', async(req, res)=>{
+         const cursor = brandCollection.find()
+         const result = await cursor.toArray()
+         res.send(result)
+      })
+      app.get('/advertisement', async(req, res)=>{
+         const cursor = advertisement.find()
          const result = await cursor.toArray()
          res.send(result)
       })
