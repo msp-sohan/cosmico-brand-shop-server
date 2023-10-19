@@ -27,6 +27,12 @@ async function run() {
       const productCollection = client.db('CosmicoDB').collection('Product')
       const brandCollection = client.db('CosmicoDB').collection('Brand')
 
+      app.get('/products', async(req, res)=>{
+         const cursor = productCollection.find()
+         const result = await cursor.toArray()
+         res.send(result)
+      })
+
       app.post('/products', async(req, res)=>{
          const addProduct = req.body;
          const result = await productCollection.insertOne(addProduct);
