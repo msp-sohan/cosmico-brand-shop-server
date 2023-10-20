@@ -68,6 +68,13 @@ async function run() {
          res.send(result)
       })
 
+      app.get('/mycart/:id', async(req, res)=>{
+         const id = req.params.id
+         const query = {_id: new ObjectId(id)}
+         const result = await cartCollection.findOne(query)
+         res.send(result)
+      })
+
       app.post('/products', async(req, res)=>{
          const addProduct = req.body;
          const result = await productCollection.insertOne(addProduct);
@@ -100,11 +107,10 @@ async function run() {
       })
 
       app.delete('/mycart/:id', async(req, res)=>{
-         const id = req.params.id
-         console.log('id', id)
-         const query = { _id: new ObjectId(id) };
+         const id = req.params.id;
+         const query = { _id: new ObjectId(id)}
          const result = await cartCollection.deleteOne(query);
-         res.send(result)
+         res.send(result);
       })
 
       // Send a ping to confirm a successful connection
