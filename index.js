@@ -8,7 +8,7 @@ require('dotenv').config()
 const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY);
 
 app.use(cors({
-   origin: ['http://localhost:5173']
+   origin: ['https://cosmico-brand-shop.netlify.app']
 }))
 app.use(express.json())
 
