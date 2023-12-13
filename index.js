@@ -8,7 +8,7 @@ require('dotenv').config()
 const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY);
 
 app.use(cors({
-   origin: ['https://cosmico-brand-shop.netlify.app']
+   origin: ['https://cosmico-brand-shop.netlify.app', 'http://localhost:5173']
 }))
 app.use(express.json())
 
@@ -35,12 +35,27 @@ async function run() {
       const advertisement = client.db('CosmicoDB').collection('Advertisement')
       const testimonials = client.db('CosmicoDB').collection('Testimonial')
       const cartCollection = client.db('CosmicoDB').collection('MyCart')
+      const userCollection = client.db('CosmicoDB').collection('Users')
 
-      app.get('/products', async (req, res) => {
-         const cursor = productCollection.find()
-         const result = await cursor.toArray()
-         res.send(result)
-      })
+      // Api For All Prduct
+      app.get("/products", async (req, res) => {
+         const searchText = req.query.search;
+         const categoryName = req.query.categoryName;
+         const filter = {};
+
+         if (searchText) {
+            filter.name = { $regex: searchText, $options: "i" };
+         }
+
+         if (categoryName && categoryName.toLowerCase() !== "all") {
+            filter.brand = categoryName;
+         }
+
+         const cursor = productCollection.find(filter);
+         const result = await cursor.toArray();
+         const total = await productCollection.estimatedDocumentCount();
+         res.send({ result, total });
+      });
 
       app.get('/products/brands', async (req, res) => {
          const cursor = brandCollection.find()
@@ -55,7 +70,6 @@ async function run() {
 
       app.get('/products/:id', async (req, res) => {
          const id = req.params.id
-         console.log(id)
          const query = { _id: new ObjectId(id) }
          const product = await productCollection.findOne(query)
          res.send(product)
@@ -73,12 +87,63 @@ async function run() {
          res.send(result)
       })
 
+      app.get('/users', async (req, res) => {
+         const result = await userCollection.find().toArray()
+         res.send(result)
+      })
+
+      app.get("/user/role", async (req, res) => {
+         const email = req.query.email;
+         const find = await userCollection.findOne({ email: email });
+         console.log(find)
+         const role = find?.role
+         res.send(role);
+      });
+
       // app.get('/mycart/:id', async (req, res) => {
       //    const id = req.params.id
       //    const query = { _id: new ObjectId(id) }
       //    const result = await cartCollection.findOne(query)
       //    res.send(result)
       // })
+      // Save User Data
+      app.post('/users', async (req, res) => {
+         const userData = req.body;
+         const userDataWithDate = { ...userData, createAt: new Date() };
+         const result = await userCollection.insertOne(userDataWithDate);
+         res.send(result);
+      });
+
+      // Save or modify user email, status in DB
+      app.put('/users/:email', async (req, res) => {
+         const email = req.params.email;
+         const user = req.body;
+         const query = { email: email };
+         const options = { upsert: true };
+         const isExist = await userCollection.findOne(query);
+         if (isExist) {
+            if (user?.status === 'Requested') {
+               const result = await userCollection.updateOne(
+                  query,
+                  {
+                     $set: user,
+                  },
+                  options,
+               );
+               return res.send(result);
+            } else {
+               return res.send(isExist);
+            }
+         }
+         const result = await userCollection.updateOne(
+            query,
+            {
+               $set: { ...user, createAt: Date.now() },
+            },
+            options,
+         );
+         res.send(result);
+      });
 
       app.post('/products', async (req, res) => {
          const addProduct = req.body;
