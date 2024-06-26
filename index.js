@@ -30,12 +30,13 @@ async function run() {
       // await client.connect();
       client.connect();
 
-      const productCollection = client.db('CosmicoDB').collection('Product')
-      const brandCollection = client.db('CosmicoDB').collection('Brand')
-      const advertisement = client.db('CosmicoDB').collection('Advertisement')
-      const testimonials = client.db('CosmicoDB').collection('Testimonial')
-      const cartCollection = client.db('CosmicoDB').collection('MyCart')
-      const userCollection = client.db('CosmicoDB').collection('Users')
+      const dbName = process.env.DB_NAME
+      const productCollection = client.db(dbName).collection('Product')
+      const brandCollection = client.db(dbName).collection('Brand')
+      const advertisement = client.db(dbName).collection('Advertisement')
+      const testimonials = client.db(dbName).collection('Testimonial')
+      const cartCollection = client.db(dbName).collection('MyCart')
+      const userCollection = client.db(dbName).collection('Users')
 
       // Api For All Prduct
       app.get("/products", async (req, res) => {
@@ -189,6 +190,11 @@ async function run() {
          const query = { _id: new ObjectId(id) }
          const result = await cartCollection.deleteOne(query);
          res.send(result);
+      })
+
+      app.delete('/cartitem', async (req, res) => {
+         const email = req.params
+         console.log(email)
       })
 
       app.post("/create-payment-intent", async (req, res) => {
