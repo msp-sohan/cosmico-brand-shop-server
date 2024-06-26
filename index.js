@@ -30,13 +30,12 @@ async function run() {
       // await client.connect();
       client.connect();
 
-      const dbName = process.env.DB_NAME
-      const productCollection = client.db(dbName).collection('Product')
-      const brandCollection = client.db(dbName).collection('Brand')
-      const advertisement = client.db(dbName).collection('Advertisement')
-      const testimonials = client.db(dbName).collection('Testimonial')
-      const cartCollection = client.db(dbName).collection('MyCart')
-      const userCollection = client.db(dbName).collection('Users')
+      const productCollection = client.db("CosmicoDB").collection('Product')
+      const brandCollection = client.db("CosmicoDB").collection('Brand')
+      const advertisement = client.db("CosmicoDB").collection('Advertisement')
+      const testimonials = client.db("CosmicoDB").collection('Testimonial')
+      const cartCollection = client.db("CosmicoDB").collection('MyCart')
+      const userCollection = client.db("CosmicoDB").collection('Users')
 
       // Api For All Prduct
       app.get("/products", async (req, res) => {
@@ -59,8 +58,7 @@ async function run() {
       });
 
       app.get('/products/brands', async (req, res) => {
-         const cursor = brandCollection.find()
-         const result = await cursor.toArray()
+         const result = await brandCollection.find().toArray()
          res.send(result)
       })
       app.get('/advertisement', async (req, res) => {
@@ -96,7 +94,6 @@ async function run() {
       app.get("/user/role", async (req, res) => {
          const email = req.query.email;
          const find = await userCollection.findOne({ email: email });
-         console.log(find)
          const role = find?.role
          res.send(role);
       });
@@ -107,6 +104,7 @@ async function run() {
       //    const result = await cartCollection.findOne(query)
       //    res.send(result)
       // })
+
       // Save User Data
       app.post('/users', async (req, res) => {
          const userData = req.body;
@@ -179,7 +177,6 @@ async function run() {
 
       app.delete('/products/:id', async (req, res) => {
          const id = req.params.id;
-         console.log(id)
          const query = { _id: new ObjectId(id) }
          const result = await productCollection.deleteOne(query);
          res.send(result);
@@ -193,8 +190,10 @@ async function run() {
       })
 
       app.delete('/cartitem', async (req, res) => {
-         const email = req.params
-         console.log(email)
+         const email = req.query?.email
+         const query = { email: email }
+         const result = await cartCollection.deleteMany(query)
+         res.send(result)
       })
 
       app.post("/create-payment-intent", async (req, res) => {
